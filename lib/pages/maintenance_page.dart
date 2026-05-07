@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/item.dart';
 import '../screens/add_item_screen.dart';
 import '../screens/item_details_page.dart';
+import '../services/local_notification_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/item_card.dart';
 import '../utils/notification_service.dart';
@@ -48,6 +49,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
         items.add(newItem);
       });
       await _saveItems();
+      await LocalNotificationService.instance.rescheduleAll();
       if (mounted) {
         NotificationService.instance
             .showSuccess(context, '${newItem.name} added!');
@@ -61,6 +63,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
       items.removeAt(index);
     });
     await _saveItems();
+    await LocalNotificationService.instance.rescheduleAll();
     if (mounted) {
       NotificationService.instance
           .showInfo(context, '${removed.name} removed.');
@@ -77,6 +80,7 @@ class _MaintenancePageState extends State<MaintenancePage> {
 
     // After returning, the item's task list may have changed — persist.
     await _saveItems();
+    await LocalNotificationService.instance.rescheduleAll();
     setState(() {}); // Refresh cards to show updated task counts.
   }
 

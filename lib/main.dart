@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'services/local_notification_service.dart';
 import 'services/settings_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SettingsService.instance.init();
+  await LocalNotificationService.instance.init();
   runApp(const MyApp());
 }
 

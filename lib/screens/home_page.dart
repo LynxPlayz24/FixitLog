@@ -8,6 +8,7 @@ import '../pages/settings_page.dart';
 import '../screens/add_item_screen.dart';
 import '../screens/item_details_page.dart';
 import '../services/auth_service.dart';
+import '../services/local_notification_service.dart';
 import '../services/profile_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -527,6 +528,7 @@ class _HomePageState extends State<HomePage> {
       final items = await StorageService.instance.loadItems();
       items.add(newItem);
       await StorageService.instance.saveItems(items);
+      await LocalNotificationService.instance.rescheduleAll();
       _loadDashboardData();
     }
   }
@@ -540,6 +542,7 @@ class _HomePageState extends State<HomePage> {
     );
     // Persist any task changes and refresh dashboard
     await StorageService.instance.saveItems(_items);
+    await LocalNotificationService.instance.rescheduleAll();
     _loadDashboardData();
   }
 

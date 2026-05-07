@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/item.dart';
 import '../models/task.dart';
+import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_tile.dart';
 import 'edit_item_screen.dart';
@@ -27,6 +28,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
       actionLabel: 'Add',
       onSubmit: (task) {
         setState(() => widget.item.tasks.add(task));
+        LocalNotificationService.instance.rescheduleAll();
       },
     );
   }
@@ -52,6 +54,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             ..photoBase64 = updatedTask.photoBase64
             ..note = updatedTask.note;
         });
+        LocalNotificationService.instance.rescheduleAll();
       },
     );
   }
@@ -247,6 +250,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     setState(() {
       widget.item.tasks.removeAt(index);
     });
+    LocalNotificationService.instance.rescheduleAll();
   }
 
   // ── Edit item ───────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'local_notification_service.dart';
 
 /// Persists user settings and notifies listeners when they change.
 ///
@@ -58,17 +59,34 @@ class SettingsService extends ChangeNotifier {
     _notificationsEnabled = value;
     await _prefs?.setBool(_kNotifEnabledKey, value);
     notifyListeners();
+
+    // Sync scheduled notifications with the new preference.
+    if (value) {
+      await LocalNotificationService.instance.rescheduleAll();
+    } else {
+      await LocalNotificationService.instance.cancelAll();
+    }
   }
 
   Future<void> setReminderNotifications(bool value) async {
     _reminderNotifications = value;
     await _prefs?.setBool(_kNotifReminderKey, value);
     notifyListeners();
+
+    // Sync scheduled notifications with the new preference.
+    if (value) {
+      await LocalNotificationService.instance.rescheduleAll();
+    } else {
+      await LocalNotificationService.instance.cancelAll();
+    }
   }
 
   Future<void> setSoundEnabled(bool value) async {
     _soundEnabled = value;
     await _prefs?.setBool(_kNotifSoundKey, value);
     notifyListeners();
+
+    // Re-schedule with the correct channel (sound vs silent).
+    await LocalNotificationService.instance.rescheduleAll();
   }
 }
