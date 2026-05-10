@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'task_log.dart';
 
 class Task {
   final String id;
@@ -7,6 +8,7 @@ class Task {
   int reminderDays;
   String? photoBase64;
   String note;
+  List<TaskLog> history;
 
   Task({
     required this.id,
@@ -15,7 +17,8 @@ class Task {
     required this.reminderDays,
     this.photoBase64,
     this.note = '',
-  });
+    List<TaskLog>? history,
+  }) : history = history ?? [];
 
   /// Create a Task with an auto-generated ID.
   factory Task.create({
@@ -52,6 +55,7 @@ class Task {
       'reminderDays': reminderDays,
       'photoBase64': photoBase64,
       'note': note,
+      'history': history.map((h) => h.toJson()).toList(),
     };
   }
 
@@ -63,6 +67,10 @@ class Task {
       reminderDays: json['reminderDays'] as int? ?? 30,
       photoBase64: json['photoBase64'] as String?,
       note: json['note'] as String? ?? '',
+      history: (json['history'] as List<dynamic>?)
+              ?.map((h) => TaskLog.fromJson(h as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 

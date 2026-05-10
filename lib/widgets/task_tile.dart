@@ -8,12 +8,16 @@ class TaskTile extends StatelessWidget {
   final Task task;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
+  final VoidCallback? onComplete;
+  final VoidCallback? onHistory;
 
   const TaskTile({
     super.key,
     required this.task,
     this.onTap,
     this.onDelete,
+    this.onComplete,
+    this.onHistory,
   });
 
   @override
@@ -118,15 +122,39 @@ class TaskTile extends StatelessWidget {
                 ),
               ),
 
-              // Edit hint + delete
-              Icon(Icons.edit_outlined,
-                  size: 18, color: colorScheme.onSurfaceVariant),
-              if (onDelete != null)
-                IconButton(
-                  icon: Icon(Icons.delete_outline,
-                      color: colorScheme.onSurfaceVariant, size: 20),
-                  onPressed: onDelete,
-                ),
+              // Actions
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onHistory != null)
+                    IconButton(
+                      icon: Icon(Icons.history,
+                          color: colorScheme.primary, size: 20),
+                      tooltip: 'View History',
+                      onPressed: onHistory,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                  if (onComplete != null)
+                    IconButton(
+                      icon: const Icon(Icons.check_circle_outline,
+                          color: AppTheme.successGreen, size: 20),
+                      tooltip: 'Complete Task',
+                      onPressed: onComplete,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                  if (onDelete != null)
+                    IconButton(
+                      icon: Icon(Icons.delete_outline,
+                          color: colorScheme.onSurfaceVariant, size: 20),
+                      tooltip: 'Delete Task',
+                      onPressed: onDelete,
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                ],
+              ),
             ],
           ),
         ),

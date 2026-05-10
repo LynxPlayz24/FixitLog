@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
+import '../services/storage_service.dart';
+import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/notification_service.dart';
 
@@ -63,6 +65,41 @@ class _SettingsPageState extends State<SettingsPage> {
                 onChanged: _settings.notificationsEnabled
                     ? (v) => _settings.setSoundEnabled(v)
                     : null,
+              ),
+              const Divider(height: 32),
+
+              // ─── Data Management ────────────────────────────────
+              _sectionHeader('Data Management'),
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: const Text('Export Data (Backup)'),
+                subtitle: const Text('Save a backup file of all your data'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  final error = await StorageService.instance.exportData();
+                  if (!context.mounted) return;
+                  if (error != null) {
+                    NotificationService.instance.showError(context, error);
+                  } else {
+                    NotificationService.instance.showSuccess(context, 'Backup exported!');
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.upload_outlined),
+                title: const Text('Import Data (Restore)'),
+                subtitle: const Text('Restore data from a backup file'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  final error = await StorageService.instance.importData();
+                  if (!context.mounted) return;
+                  if (error != null) {
+                    NotificationService.instance.showError(context, error);
+                  } else {
+                    LocalNotificationService.instance.rescheduleAll();
+                    NotificationService.instance.showSuccess(context, 'Data restored successfully!');
+                  }
+                },
               ),
               const Divider(height: 32),
 

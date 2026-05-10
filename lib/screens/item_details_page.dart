@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/item.dart';
 import '../models/task.dart';
+import '../models/task_log.dart';
 import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_tile.dart';
@@ -41,20 +42,155 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
       title: 'Edit Task',
       actionLabel: 'Save',
       initialName: existing.name,
-      initialDate: existing.dateDone,
       initialReminderDays: existing.reminderDays,
       initialPhotoBase64: existing.photoBase64,
       initialNote: existing.note,
+      showDateSelector: false,
       onSubmit: (updatedTask) {
         setState(() {
           existing
             ..name = updatedTask.name
-            ..dateDone = updatedTask.dateDone
             ..reminderDays = updatedTask.reminderDays
             ..photoBase64 = updatedTask.photoBase64
             ..note = updatedTask.note;
         });
         LocalNotificationService.instance.rescheduleAll();
+      },
+    );
+  }
+
+  // ── Complete task dialog ────────────────────────────────────────────
+
+  void _completeTask(int index) {
+    final task = widget.item.tasks[index];
+    DateTime selectedDate = DateTime.now();
+    final noteCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Complete Task'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Log this maintenance task as completed?'),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: ctx,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => selectedDate = picked);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Date Completed',
+                        prefixIcon: Icon(Icons.calendar_today_outlined),
+                        suffixIcon: Icon(Icons.arrow_drop_down),
+                      ),
+                      child: Text(_formatDate(selectedDate)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: noteCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Log Note (optional)',
+                      hintText: 'e.g., Used 5W-30 oil',
+                      prefixIcon: Icon(Icons.notes_outlined),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final log = TaskLog.create(
+                      completedDate: selectedDate,
+                      note: noteCtrl.text.trim(),
+                    );
+                    setState(() {
+                      task.dateDone = selectedDate;
+                      task.history.add(log);
+                      // Sort history descending
+                      task.history.sort((a, b) =>
+                          b.completedDate.compareTo(a.completedDate));
+                    });
+                    LocalNotificationService.instance.rescheduleAll();
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Complete'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ── History bottom sheet ────────────────────────────────────────────
+
+  void _showHistory(int index) {
+    final task = widget.item.tasks[index];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  '${task.name} History',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              if (task.history.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text('No history logged yet.'),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: task.history.length,
+                    itemBuilder: (context, i) {
+                      final log = task.history[i];
+                      return ListTile(
+                        leading: const Icon(Icons.history),
+                        title: Text(_formatDate(log.completedDate)),
+                        subtitle:
+                            log.note.isNotEmpty ? Text(log.note) : null,
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -67,6 +203,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     required void Function(Task task) onSubmit,
     String initialName = '',
     DateTime? initialDate,
+    bool showDateSelector = true,
     int initialReminderDays = 30,
     String? initialPhotoBase64,
     String initialNote = '',
@@ -105,29 +242,31 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                     const SizedBox(height: 12),
 
                     // Date done
-                    InkWell(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: ctx,
-                          initialDate: selectedDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setDialogState(() => selectedDate = picked);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Date Done',
-                          prefixIcon: Icon(Icons.calendar_today_outlined),
-                          suffixIcon: Icon(Icons.arrow_drop_down),
+                    if (showDateSelector) ...[
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: ctx,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) {
+                            setDialogState(() => selectedDate = picked);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Date Done',
+                            prefixIcon: Icon(Icons.calendar_today_outlined),
+                            suffixIcon: Icon(Icons.arrow_drop_down),
+                          ),
+                          child: Text(_formatDate(selectedDate)),
                         ),
-                        child: Text(_formatDate(selectedDate)),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                    ],
 
                     // Reminder interval
                     TextField(
@@ -373,6 +512,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                         task: tasks[index],
                         onTap: () => _editTask(index),
                         onDelete: () => _deleteTask(index),
+                        onComplete: () => _completeTask(index),
+                        onHistory: () => _showHistory(index),
                       );
                     },
                   ),
