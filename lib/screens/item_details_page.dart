@@ -9,6 +9,7 @@ import '../services/local_notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_tile.dart';
 import 'edit_item_screen.dart';
+import 'item_history_page.dart';
 
 class ItemDetailsPage extends StatefulWidget {
   final Item item;
@@ -142,72 +143,14 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     );
   }
 
-  // ── History bottom sheet ────────────────────────────────────────────
+  // ── History page navigation ─────────────────────────────────────────
 
   void _showItemHistory() {
-    final allLogs = <Map<String, dynamic>>[];
-    for (var task in widget.item.tasks) {
-      for (var log in task.history) {
-        allLogs.add({
-          'taskName': task.name,
-          'log': log,
-        });
-      }
-    }
-    allLogs.sort((a, b) {
-      final logA = a['log'] as TaskLog;
-      final logB = b['log'] as TaskLog;
-      return logB.completedDate.compareTo(logA.completedDate);
-    });
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemHistoryPage(item: widget.item),
       ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  '${widget.item.name} History',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const Divider(height: 1),
-              if (allLogs.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text('No history logged yet.'),
-                )
-              else
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: allLogs.length,
-                    itemBuilder: (context, i) {
-                      final item = allLogs[i];
-                      final log = item['log'] as TaskLog;
-                      final taskName = item['taskName'] as String;
-                      return ListTile(
-                        leading: const Icon(Icons.history),
-                        title: Text('$taskName - ${_formatDate(log.completedDate)}'),
-                        subtitle:
-                            log.note.isNotEmpty ? Text(log.note) : null,
-                      );
-                    },
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
     );
   }
 

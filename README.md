@@ -12,6 +12,7 @@ FixItLog is a professional-grade maintenance logging app designed to help you ke
 ## ✨ Key Features
 - **Dashboard & Equipment Tracking**: Organize all your items by category (Car, Motorcycle, Electronics, Home, etc.) and view upcoming or overdue maintenance at a glance.
 - **Maintenance History Logging**: A strict, chronological log is kept every time you complete a task. This creates an immutable history record that is perfect for warranty claims or selling a vehicle.
+- **Export PDF & CSV Reports**: Instantly generate professional Service Reports (PDF) or spreadsheet-compatible logs (CSV) for any piece of equipment, and share them natively via email or cloud storage.
 - **Smart Reminders**: Fully integrated local notifications (`flutter_local_notifications`) alert you when a task is due. Reminders and sound preferences can be toggled in the settings.
 - **Multi-Photo Documentation**: Add multiple photos to your equipment to keep a visual record of conditions or serial numbers.
 - **Data Backup & Restore**: Completely offline and privacy-focused. Easily export your entire database (including photos and history) as a standard JSON file and share it to Google Drive, or import it back to restore your data on a new device.
