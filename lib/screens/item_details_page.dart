@@ -144,8 +144,22 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   // ── History bottom sheet ────────────────────────────────────────────
 
-  void _showHistory(int index) {
-    final task = widget.item.tasks[index];
+  void _showItemHistory() {
+    final allLogs = <Map<String, dynamic>>[];
+    for (var task in widget.item.tasks) {
+      for (var log in task.history) {
+        allLogs.add({
+          'taskName': task.name,
+          'log': log,
+        });
+      }
+    }
+    allLogs.sort((a, b) {
+      final logA = a['log'] as TaskLog;
+      final logB = b['log'] as TaskLog;
+      return logB.completedDate.compareTo(logA.completedDate);
+    });
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -159,7 +173,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  '${task.name} History',
+                  '${widget.item.name} History',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -167,7 +181,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 ),
               ),
               const Divider(height: 1),
-              if (task.history.isEmpty)
+              if (allLogs.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(32),
                   child: Text('No history logged yet.'),
@@ -176,12 +190,14 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: task.history.length,
+                    itemCount: allLogs.length,
                     itemBuilder: (context, i) {
-                      final log = task.history[i];
+                      final item = allLogs[i];
+                      final log = item['log'] as TaskLog;
+                      final taskName = item['taskName'] as String;
                       return ListTile(
                         leading: const Icon(Icons.history),
-                        title: Text(_formatDate(log.completedDate)),
+                        title: Text('$taskName - ${_formatDate(log.completedDate)}'),
                         subtitle:
                             log.note.isNotEmpty ? Text(log.note) : null,
                       );
@@ -425,6 +441,11 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         title: Text(item.name),
         actions: [
           IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Log History',
+            onPressed: _showItemHistory,
+          ),
+          IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit Item',
             onPressed: () => _editItem(),
@@ -513,7 +534,6 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                         onTap: () => _editTask(index),
                         onDelete: () => _deleteTask(index),
                         onComplete: () => _completeTask(index),
-                        onHistory: () => _showHistory(index),
                       );
                     },
                   ),

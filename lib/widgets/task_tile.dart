@@ -9,7 +9,6 @@ class TaskTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onComplete;
-  final VoidCallback? onHistory;
 
   const TaskTile({
     super.key,
@@ -17,7 +16,6 @@ class TaskTile extends StatelessWidget {
     this.onTap,
     this.onDelete,
     this.onComplete,
-    this.onHistory,
   });
 
   @override
@@ -126,15 +124,6 @@ class TaskTile extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (onHistory != null)
-                    IconButton(
-                      icon: Icon(Icons.history,
-                          color: colorScheme.primary, size: 20),
-                      tooltip: 'View History',
-                      onPressed: onHistory,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(6),
-                    ),
                   if (onComplete != null)
                     IconButton(
                       icon: const Icon(Icons.check_circle_outline,
