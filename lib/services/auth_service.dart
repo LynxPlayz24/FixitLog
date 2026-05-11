@@ -38,9 +38,18 @@ class AuthService {
   String? currentUserEmail;
   String? currentUsername;
 
-  void clearSession() {
+  Future<void> init() async {
+    final prefs = await _preferences;
+    currentUserEmail = prefs.getString('current_user_email');
+    currentUsername = prefs.getString('current_username');
+  }
+
+  Future<void> clearSession() async {
     currentUserEmail = null;
     currentUsername = null;
+    final prefs = await _preferences;
+    await prefs.remove('current_user_email');
+    await prefs.remove('current_username');
   }
 
   // ── Public API ────────────────────────────────────────────────────────
@@ -95,6 +104,10 @@ class AuthService {
     // Store session info
     currentUserEmail = email.toLowerCase();
     currentUsername = user['username'] as String;
+
+    final prefs = await _preferences;
+    await prefs.setString('current_user_email', currentUserEmail!);
+    await prefs.setString('current_username', currentUsername!);
 
     return user['username'] as String;
   }

@@ -58,12 +58,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _goToRegister() async {
-    final returnedUsername = await Navigator.pushNamed(context, '/register');
+    final result = await Navigator.pushNamed(context, '/register');
 
-    if (returnedUsername != null && returnedUsername is String) {
+    if (result != null && result is Map) {
       if (mounted) {
+        setState(() {
+          emailController.text = result['email'] ?? '';
+          passwordController.text = result['password'] ?? '';
+        });
         NotificationService.instance
-            .showSuccess(context, 'Registered successfully as $returnedUsername! You can now log in.');
+            .showSuccess(context, 'Registered successfully as ${result['username']}! You can now log in.');
       }
     }
   }

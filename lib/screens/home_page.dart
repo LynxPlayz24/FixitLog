@@ -762,8 +762,9 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
-                onTap: () {
-                  AuthService.instance.clearSession();
+                onTap: () async {
+                  await AuthService.instance.clearSession();
+                  if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                       context, '/', (route) => false);
                 },
