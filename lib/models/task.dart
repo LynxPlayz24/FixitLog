@@ -9,6 +9,7 @@ class Task {
   String? photoBase64;
   String note;
   List<TaskLog> history;
+  bool isCompleted;
 
   Task({
     required this.id,
@@ -18,6 +19,7 @@ class Task {
     this.photoBase64,
     this.note = '',
     List<TaskLog>? history,
+    this.isCompleted = false,
   }) : history = history ?? [];
 
   /// Create a Task with an auto-generated ID.
@@ -27,6 +29,7 @@ class Task {
     required int reminderDays,
     String? photoBase64,
     String note = '',
+    bool isCompleted = false,
   }) {
     return Task(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -35,6 +38,7 @@ class Task {
       reminderDays: reminderDays,
       photoBase64: photoBase64,
       note: note,
+      isCompleted: isCompleted,
     );
   }
 
@@ -56,6 +60,7 @@ class Task {
       'photoBase64': photoBase64,
       'note': note,
       'history': history.map((h) => h.toJson()).toList(),
+      'isCompleted': isCompleted,
     };
   }
 
@@ -71,6 +76,7 @@ class Task {
               ?.map((h) => TaskLog.fromJson(h as Map<String, dynamic>))
               .toList() ??
           [],
+      isCompleted: json['isCompleted'] as bool? ?? false,
     );
   }
 

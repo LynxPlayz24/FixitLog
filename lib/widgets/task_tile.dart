@@ -125,14 +125,22 @@ class TaskTile extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (onComplete != null)
-                    IconButton(
-                      icon: const Icon(Icons.check_circle_outline,
-                          color: AppTheme.successGreen, size: 20),
-                      tooltip: 'Complete Task',
-                      onPressed: onComplete,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(6),
-                    ),
+                    task.isCompleted
+                        ? const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Icon(Icons.check_circle,
+                                color: AppTheme.successGreen, size: 20),
+                          )
+                        : IconButton(
+                            icon: Icon(Icons.check_circle_outline,
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.5),
+                                size: 20),
+                            tooltip: 'Complete Task',
+                            onPressed: onComplete,
+                            constraints: const BoxConstraints(),
+                            padding: const EdgeInsets.all(6),
+                          ),
                   if (onDelete != null)
                     IconButton(
                       icon: Icon(Icons.delete_outline,

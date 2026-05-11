@@ -64,80 +64,38 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   void _completeTask(int index) {
     final task = widget.item.tasks[index];
-    DateTime selectedDate = DateTime.now();
-    final noteCtrl = TextEditingController();
+    if (task.isCompleted) return;
 
     showDialog(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: const Text('Complete Task'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Log this maintenance task as completed?'),
-                  const SizedBox(height: 16),
-                  InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: ctx,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => selectedDate = picked);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Date Completed',
-                        prefixIcon: Icon(Icons.calendar_today_outlined),
-                        suffixIcon: Icon(Icons.arrow_drop_down),
-                      ),
-                      child: Text(_formatDate(selectedDate)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: noteCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Log Note (optional)',
-                      hintText: 'e.g., Used 5W-30 oil',
-                      prefixIcon: Icon(Icons.notes_outlined),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final log = TaskLog.create(
-                      completedDate: selectedDate,
-                      note: noteCtrl.text.trim(),
-                    );
-                    setState(() {
-                      task.dateDone = selectedDate;
-                      task.history.add(log);
-                      // Sort history descending
-                      task.history.sort((a, b) =>
-                          b.completedDate.compareTo(a.completedDate));
-                    });
-                    LocalNotificationService.instance.rescheduleAll();
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Complete'),
-                ),
-              ],
-            );
-          },
+        return AlertDialog(
+          title: const Text('Complete Task'),
+          content: const Text('Log this maintenance task as completed?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final log = TaskLog.create(
+                  completedDate: task.dateDone,
+                  note: task.note,
+                );
+                setState(() {
+                  task.isCompleted = true;
+                  task.history.add(log);
+                  // Sort history descending
+                  task.history.sort((a, b) =>
+                      b.completedDate.compareTo(a.completedDate));
+                });
+                LocalNotificationService.instance.rescheduleAll();
+                Navigator.pop(ctx);
+              },
+              child: const Text('Complete'),
+            ),
+          ],
         );
       },
     );
@@ -474,7 +432,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                     itemBuilder: (context, index) {
                       return TaskTile(
                         task: tasks[index],
-                        onTap: () => _editTask(index),
+                        onTap: tasks[index].isCompleted ? null : () => _editTask(index),
                         onDelete: () => _deleteTask(index),
                         onComplete: () => _completeTask(index),
                       );
